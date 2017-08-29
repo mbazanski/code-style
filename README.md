@@ -6,16 +6,23 @@ Eclipse
 ##### Gradle setup
 * Add `copyEclipseSettings` task and edit `codeStylePath` to match your local path of code-style:
 ```
+task downloadEclipseSettings(type: Download) {
+    def baseUrl = "https://raw.githubusercontent.com/mbazanski/code-style/master/eclipse/settings/"
+    src([
+        baseUrl + 'org.eclipse.core.resources.prefs',
+        baseUrl + 'org.eclipse.jdt.core.prefs_normal',
+        baseUrl + 'org.eclipse.jdt.ui.prefs',
+    ])
+    dest project.file('.settings')
+}
+
 task copyEclipseSettings(type: Copy) {
-    def homePath = System.properties['user.home']
-    def codeStylePath = "${homePath}/projects/code-style"
-    from("${codeStylePath}/eclipse/settings") {
-        rename('(.*prefs).*', '$1')
-    }
+    dependsOn downloadEclipseSettings
+
+    from project.file('.settings')
     into project.file('.settings')
 
-    def suffix = project.name.endsWith('-wsdl') ? 'generated' : 'normal'
-    include 'org.eclipse.*.prefs', "org.eclipse.*.prefs_${suffix}"
+    rename("org.eclipse.jdt.core.prefs_normal", "org.eclipse.jdt.core.prefs")
 }
 ```
 * Run `./gradlew copyEclipseSettings`
